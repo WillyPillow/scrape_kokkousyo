@@ -11,9 +11,9 @@ from selenium.webdriver.support.ui import Select
 def sort_csv(data_dir):
     path = PurePath.joinpath(data_dir, '入札公告.csv')
     f = pd.read_csv(path)
-    today = datetime.date.today().strftime('%Y/%m/%d')
-    print(today, '更新分', sep='')
-    print(f[f['公告日'] == today])
+    # today = datetime.date.today().strftime('%Y/%m/%d')
+    # print(today, '更新分', sep='')
+    # print(f[f['公告日'] == today])
     sorted_data = f.sort_values(by='公告日', ascending=False)
     sorted_data.to_csv(path, index=False)
 
@@ -29,7 +29,14 @@ def save_data(data_dir, df_new):
                 pass
             else:
                 df_new[df_new['工事名'] == title].to_csv(csv_data, mode='a', index=False, header=False)
+        today = datetime.date.today().strftime('%Y/%m/%d')
+        print(today, '更新分', sep='')
+        if df_old[df_old['公告日'] == today].empty:
+            print('本日の更新はありません')
+        else:
+            print(df_old[df_old['公告日'] == today])
         sort_csv(data_dir)
+
     else:
         df_new.to_csv(csv_data, index=False)
         print('df_new')
