@@ -2,6 +2,7 @@ from pathlib import PurePath, Path #参考サイト：https://note.nkmk.me/pytho
 import pandas as pd
 import time
 import datetime
+import sys
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 
@@ -11,9 +12,6 @@ from selenium.webdriver.support.ui import Select
 def sort_csv(data_dir):
     path = PurePath.joinpath(data_dir, '入札公告.csv')
     f = pd.read_csv(path)
-    # today = datetime.date.today().strftime('%Y/%m/%d')
-    # print(today, '更新分', sep='')
-    # print(f[f['公告日'] == today])
     sorted_data = f.sort_values(by='公告日', ascending=False)
     sorted_data.to_csv(path, index=False)
 
@@ -45,7 +43,7 @@ def save_data(data_dir, df_new):
 
 #main.py(=__file__)のあるディレクトリにdataディレクトリ作成し、パスobjを返す
 def make_data_dir():
-    target_path = Path(__file__).parent
+    target_path = Path(sys.argv[0]).parent.resolve()
     data_dir = PurePath.joinpath(target_path, 'data')
     if data_dir.exists():
         return data_dir
