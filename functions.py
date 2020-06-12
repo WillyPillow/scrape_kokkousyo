@@ -54,49 +54,86 @@ def make_data_dir():
 
 def make_df(items):
     df = pd.DataFrame()
-    df['発注機関'] = items[0]
-    df['担当部・事務所'] = items[1]
-    df['工事名'] = items[2]
-    df['入札契約方式'] = items[3]
-    df['工事区分'] = items[4]
-    df['公告日'] = items[5]
+    df['Organization'] = items[0]
+    df['Department'] = items[1]
+    df['Title'] = items[2]
+    df['Format'] = items[3]
+    df['Type'] = items[4]
+    df['Date1'] = items[5]
+    df['Location From'] = items[6]
+    df['Location To'] = items[7]
+    df['Date2'] = items[8]
+    df['Date3'] = items[9]
+    df['URL'] = items[10]
 
     return df
 
 
-def scrap_items(driver):
+def scrap_items(driver, num_pages=100):
     organs = []
     departments = []
     titles = []
     format_s = []
     type_s = []
-    date_s = []
-    items = [organs, departments, titles, format_s, type_s, date_s]
+    date_1_s = []
+    date_2_s = []
+    date_3_s = []
+    loc_from_s = []
+    loc_to_s = []
+    urls = []
+    items = [organs, departments, titles, format_s, type_s, date_1_s, loc_from_s, loc_to_s, date_2_s, date_3_s, urls]
 
-    search_list = driver.find_element_by_id('dgrSearchList')
-    trs = search_list.find_elements_by_tag_name('tr')
-    time.sleep(1)
-    for tr in trs:
-        tds = tr.find_elements_by_tag_name('td')
-        if not tds:
-            continue
-        else:
-            _organ = tds[1].text
-            _organs = _organ.split('／')
-            organ = _organs[0]
-            organs.append(organ)
-            department = _organs[1]
-            departments.append(department)
-            title = tds[2].text.replace('\u3000', '')
-            titles.append(title)
-            format_ = tds[3].text
-            format_s.append(format_)
-            type_ = tds[4].text
-            type_s.append(type_)
-            date_ = tds[5].text
-            date_s.append(date_)
+    try:
+        for p in range(num_pages):
+            search_list = driver.find_element_by_id('dgrSearchList')
+            trs = search_list.find_elements_by_tag_name('tr')
+            for i in range(len(trs)):
+                time.sleep(1)
+                search_list = driver.find_element_by_id('dgrSearchList')
+                trs = search_list.find_elements_by_tag_name('tr')
+                tds = trs[i].find_elements_by_tag_name('td')
+                if not tds:
+                    continue
+                else:
+                    link = tds[2].find_elements_by_tag_name('a')[0]
+                    assert link
+                    link.click()
+                    time.sleep(1)
+                    try:
+                        organ = driver.find_element_by_id('lblHachukikan').text
+                        organs.append(organ)
+                        department = driver.find_element_by_id('lblHachusha').text
+                        departments.append(department)
+                        title = driver.find_element_by_id('lblKojiNm').text
+                        titles.append(title)
+                        loc_from = driver.find_element_by_id('lblKojiPlaceFrom').text
+                        loc_from_s.append(loc_from)
+                        loc_to = driver.find_element_by_id('lblKojiPlaceTo').text
+                        loc_to_s.append(loc_to)
+                        format_ = driver.find_element_by_id('lblNyusatsuPtn').text
+                        format_s.append(format_)
+                        type_ = driver.find_element_by_id('lblKojiType').text
+                        type_s.append(type_)
+                        date_1 = driver.find_element_by_id('lblKokokuDate').text
+                        date_1_s.append(date_1)
+                        date_2 = driver.find_element_by_id('lblkigenDate').text
+                        date_2_s.append(date_2)
+                        date_3 = driver.find_element_by_id('lblKasatuDate').text
+                        date_3_s.append(date_3)
+                        url = driver.find_element_by_id('dgrKokoku').find_elements_by_tag_name('a')[0].get_attribute('href')
+                        urls.append(url)
+                        print(title, url)
+                    except:
+                        print("[ERR] Skipping...")
+                    finally:
+                        driver.back()
 
-    return items
+            driver.find_element_by_id('btnNext2').click()
+            time.sleep(10)
+    except:
+        print("[ERR] Exiting...")
+    finally:
+        return items
 
 
 #参考URL：https://qiita.com/redoriva/items/aa9fa4c0bf2aeb8e1bff
@@ -110,17 +147,10 @@ def select_drop(driver, id_, value):
 
 #webdriverの位置を都度変える
 def driver_get(url):
-    driver_home = 'C:/chromedriver_win32/chromedriver'
-    driver_gae = r'C:\Users\g2945\chromedriver\chromedriver'
+    driver_home = '/usr/bin/chromedriver'
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
-    try:
-        driver = webdriver.Chrome(driver_home, options=options)
-        driver.implicitly_wait(10)
-        driver.get(url)
-        return driver
-    except:
-        driver2 = webdriver.Chrome(driver_gae, options=options)
-        driver2.implicitly_wait(10)
-        driver2.get(url)
-        return driver2
+    driver = webdriver.Chrome(driver_home, options=options)
+    driver.implicitly_wait(10)
+    driver.get(url)
+    return driver

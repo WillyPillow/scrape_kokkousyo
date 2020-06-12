@@ -4,14 +4,11 @@ from functions import make_df, scrap_items, make_data_dir, save_data, driver_get
 #参考URL：https://tanuhack.com/selenium/#WebDriver-2
 
 def main():
-    url = 'http://www.i-ppi.jp/Search/Web/Koji/Kokoku/SearchEasy.aspx?data1=8'
+    url = 'https://www.i-ppi.jp/IPPI/SearchServices/Web/Koji/Kokoku/Search.aspx'
     driver = driver_get(url)
 
-    select_drop(driver, 'drpTopKikanInf', '0')
-    select_drop(driver, 'drpLargeKikanInf2', '21')
-    select_drop(driver, 'drpMiddleKikanInf', '08')
-    select_drop(driver, 'drpDistrict', '8')
-    select_drop(driver, 'drpKokokuYear', '1')
+    select_drop(driver, 'drpCount', '100')
+    driver.find_element_by_id('rbtKokokuDate1').click()
 
     search_btn = driver.find_element_by_id('btnSearch')
     search_btn.click()
@@ -19,8 +16,8 @@ def main():
     items = scrap_items(driver)
     df_new = make_df(items)
 
-    data_dir = make_data_dir()
-    save_data(data_dir, df_new)
+    print(df_new)
+    df_new.to_json('out.json')
 
     driver.close()
     driver.quit()
