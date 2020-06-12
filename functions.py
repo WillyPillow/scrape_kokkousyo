@@ -4,7 +4,9 @@ import time
 import datetime
 import sys
 from selenium import webdriver
-from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import Select, WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 
 
 # 参考サイト：https://pythondatascience.plavox.info/pandas/%E3%83%87%E3%83%BC%E3%82%BF%E3%83%95%E3%83%AC%E3%83%BC%E3%83%A0%E3%82%92%E3%82%BD%E3%83%BC%E3%83%88%E3%81%99%E3%82%8B
@@ -69,7 +71,7 @@ def make_df(items):
     return df
 
 
-def scrap_items(driver, num_pages=100):
+def scrap_items(driver, num_pages=100, timeout=10):
     organs = []
     departments = []
     titles = []
@@ -85,11 +87,10 @@ def scrap_items(driver, num_pages=100):
 
     try:
         for p in range(num_pages):
-            search_list = driver.find_element_by_id('dgrSearchList')
+            search_list = WebDriverWait(driver, timeout).until(EC.presence_of_element_located((By.ID, 'dgrSearchList')))
             trs = search_list.find_elements_by_tag_name('tr')
             for i in range(len(trs)):
-                time.sleep(1)
-                search_list = driver.find_element_by_id('dgrSearchList')
+                search_list = WebDriverWait(driver, timeout).until(EC.presence_of_element_located((By.ID, 'dgrSearchList')))
                 trs = search_list.find_elements_by_tag_name('tr')
                 tds = trs[i].find_elements_by_tag_name('td')
                 if not tds:
@@ -98,9 +99,8 @@ def scrap_items(driver, num_pages=100):
                     link = tds[2].find_elements_by_tag_name('a')[0]
                     assert link
                     link.click()
-                    time.sleep(1)
                     try:
-                        organ = driver.find_element_by_id('lblHachukikan').text
+                        organ = WebDriverWait(driver, timeout).until(EC.presence_of_element_located((By.ID, 'lblHachukikan')))
                         organs.append(organ)
                         department = driver.find_element_by_id('lblHachusha').text
                         departments.append(department)
@@ -123,15 +123,16 @@ def scrap_items(driver, num_pages=100):
                         url = driver.find_element_by_id('dgrKokoku').find_elements_by_tag_name('a')[0].get_attribute('href')
                         urls.append(url)
                         print(title, url)
-                    except:
-                        print("[ERR] Skipping...")
+                    except Exception as e:
+                        print('[ERR] Skipping...')
+                        print(e)
                     finally:
                         driver.back()
 
             driver.find_element_by_id('btnNext2').click()
-            time.sleep(10)
-    except:
-        print("[ERR] Exiting...")
+    except Exception as e:
+        print('[ERR] Exiting at page %d...' % p)
+        print(e)
     finally:
         return items
 
