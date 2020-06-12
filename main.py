@@ -17,7 +17,7 @@ def main():
     df_new = make_df(items)
 
     print(df_new)
-    df_new.to_json('out.json')
+    df_new.to_json('out.json', default_handler=str)
 
     driver.close()
     driver.quit()

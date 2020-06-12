@@ -99,8 +99,9 @@ def scrap_items(driver, num_pages=100, timeout=10):
                     link = tds[2].find_elements_by_tag_name('a')[0]
                     assert link
                     link.click()
+                    time.sleep(1)
                     try:
-                        organ = WebDriverWait(driver, timeout).until(EC.presence_of_element_located((By.ID, 'lblHachukikan')))
+                        organ = WebDriverWait(driver, timeout).until(EC.presence_of_element_located((By.ID, 'lblHachukikan'))).text
                         organs.append(organ)
                         department = driver.find_element_by_id('lblHachusha').text
                         departments.append(department)
@@ -130,6 +131,7 @@ def scrap_items(driver, num_pages=100, timeout=10):
                         driver.back()
 
             driver.find_element_by_id('btnNext2').click()
+            time.sleep(1)
     except Exception as e:
         print('[ERR] Exiting at page %d...' % p)
         print(e)
